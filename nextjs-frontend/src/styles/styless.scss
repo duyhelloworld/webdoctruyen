@@ -1,0 +1,36 @@
+.container{
+  width: 100%;
+  max-width: 1250px;
+  height: 1250px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  margin-top: 30px;
+  .container_item{
+    grid-column: 1/5;
+    .list_manga{
+      height: 90%;
+    }
+    .button_changeChap{
+      display: flex;
+      justify-content: space-between;
+      .btn {
+        border: 1px solid black;
+        width: 100px;
+        height: 35px;
+        border-radius: 10px;
+        &:hover {
+          cursor: pointer;
+          background-color: rgb(202, 173, 173);
+        }
+      }
+    }
+  }
+  .follow_container{
+    grid-column: 5/7;
+    .fl_container{
+      overflow: hidden;
+      height: 585px;
+      border-radius: 10px;
+    }
+  }
+}

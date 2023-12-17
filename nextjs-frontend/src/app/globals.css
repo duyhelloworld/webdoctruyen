@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: mono !important;
+  /* background-color: rgba(164, 160, 160, 0.2) !important; */
+}

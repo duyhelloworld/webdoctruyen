@@ -1,0 +1,224 @@
+.hed {
+  width: 100%;
+  max-width: 1500px;
+  height: 10vh;
+  background-image: url("/images/logo/megumi-bg.jpg");
+
+  .head_logo {
+    width: 20%;
+    font-size: 30px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .head_middle {
+    width: 50%;
+
+    .head_search {
+      width: 70%;
+      input {
+        width: 95%;
+        height: 30px;
+        border-radius: 10px;
+
+        &:focus {
+          outline: none;
+        }
+      }
+
+    }
+
+    .head_light_mes {
+      .head_light{
+        //do something with light
+
+      }
+      .head_mes {
+        position: relative;
+        height: 100%;
+        &:hover{
+          .options {
+            display:grid;
+            grid-template-columns: 300px;
+            li{
+              padding: 10px;
+              background-color: aquamarine;
+              margin-bottom: 5px;
+              border-radius: 5%;
+            }
+          }
+        }
+        .options {
+          position: absolute;
+          top: 28px;
+          display: none;
+          background-color: #fff;
+          color: black;
+          border: 1px solid #ccc;
+          z-index: 100;
+          float: left;
+          min-width: 100px;
+          border-radius: 3px;
+          padding: 5px 0;
+          background-clip: padding-box;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+      }
+
+    }
+  }
+
+  .head_profile {
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    width: 30%;
+    position: relative;
+    display: inline-block;
+
+  }
+
+  .hover-container {
+    display: block;
+    position: relative;
+
+    button {
+      width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &:hover {
+      .options {
+        display: block;
+      }
+    }
+
+
+    .options {
+      position: absolute;
+      top: 30px;
+      width: 150px;
+      display: none;
+      background-color: #fff;
+      color: black;
+      border: 1px solid #ccc;
+      border-radius: 10%;
+      z-index: 100;
+      float: left;
+      min-width: 100px;
+      padding: 5px 0;
+
+      background-clip: padding-box;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      text-align: center;
+
+      li:hover {
+        color: red;
+        cursor: pointer;
+        font-weight: bolder;
+      }
+    }
+  }
+}
+
+.navbar {
+  max-width: 1500px;
+  height: 50px;
+
+  .navbar_item {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  .navbar_home {
+    height: 50px;
+    width: 50px;
+    background-color: #fff;
+  }
+
+  .hover_pseudo1 {
+    position: relative;
+    display: flex;
+    height: 50px;
+
+    .navbar_option1 {
+      position: absolute;
+      top: 45px;
+      display: none;
+      background-color: #fff;
+      color: black;
+      border: 1px solid #ccc;
+      border-radius: 5%;
+      z-index: 100;
+      min-width: 100px;
+      padding: 5px 0;
+      background-clip: padding-box;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+      .option_item {
+        padding: 10px;
+      }
+    }
+
+    &:hover {
+      .navbar_option1 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        column-gap: 40px;
+
+        li:hover {
+          color: red;
+        }
+      }
+    }
+  }
+
+  .hover_pseudo2 {
+    position: relative;
+    display: flex;
+    height: 50px;
+
+    .navbar_option2 {
+      position: absolute;
+      top: 45px;
+      display: none;
+      background-color: #fff;
+      color: black;
+      border: 1px solid #ccc;
+      border-radius: 5%;
+      z-index: 100;
+      min-width: 100px;
+      padding: 5px 0;
+      background-clip: padding-box;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+      .option_item {
+        padding: 10px;
+      }
+    }
+
+    &:hover {
+      .navbar_option2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        column-gap: 40px;
+
+        li:hover {
+          color: red;
+        }
+      }
+    }
+  }
+
+  .arrow-down {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid black;
+  }
+}

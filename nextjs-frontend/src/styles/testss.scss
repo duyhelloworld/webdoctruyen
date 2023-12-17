@@ -1,0 +1,69 @@
+
+.list_container{
+  width: 100%;
+  max-width: 834px;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 350px;
+  .list_item{
+    margin: 5px;
+    width: 100%;
+    height: 100%;
+    
+    .manga_title{
+      max-width: 160px;
+      word-wrap: break-word;
+    }
+    p{
+      &:hover{
+        color: #4a64e5;
+        cursor: pointer;
+      }
+    }
+    .image_render{
+      max-width: 170px;
+      width: 100%;
+      height: 200px;
+    }
+  }
+}
+
+.fl_container{
+  width: 100%;
+  max-width: 416px;
+  height: 100vh;
+  border: 0.5px solid rgba(rgb(17,17,17), 0.2);
+  .fl_title{
+    height: 30px;
+  }
+  .fl_content{
+    padding-left: 10px;
+    height: 100px;
+    position: relative;
+    margin-top: 10px;
+    &:after{
+      position: absolute;
+      content: "";
+      bottom: 0;
+      top: 105px;
+      left: 10%;
+      width: 80%;
+      height: 1px;
+      background-color: rgba(rgb(17,17,17), 0.2);
+      transition: all;
+    }
+    .fl_content1{
+      width: 100%;
+
+      .fl_item1{
+        height: 25%;
+        font-weight: 700;
+      }
+      .fl_item2{
+        height: 50%;
+      }
+    }
+
+  }
+}
