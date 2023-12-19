@@ -34,33 +34,30 @@ public class WebSecurityConfig {
 	}
 
 	@Bean
-	public AuthenticationProvider authenticationProvider() {
+	AuthenticationProvider authenticationProvider() {
 		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
 		provider.setUserDetailsService(userDetailsService);
 		provider.setPasswordEncoder(passwordEncoder());
 		return provider;
 	}
 
-	/**
-	 * @param CSRF                    tắt cái csrf mặc định vì đã dùng jwt rồi
-	 * @param authorizeHttpRequests   cho phép tất cả các request đến /auth/**
-	 *                                mà không cần xác thực (để vào api
-	 *                                signup/signin)
-	 *                                các request khác thì phải xác thực
-	 * @param sessionManagement       tắt session vì dùng jwt
-	 * @param authenticationProvider  cung cấp khả năng mở rộng cho google,
-	 *                                facebook, ...
-	 * @param appAuthenticationFilter filter để xác thực jwt (tự định nghĩa)
-	 */
-	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    /**
+     * @param CSRF                    tắt cái csrf mặc định vì đã dùng jwt rồi
+     * @param authorizeHttpRequest 	  phân quyền request
+     * @param sessionManagement       t?t session vì dùng jwt
+     * @param authenticationProvider  mở rộng cho google, facebook, ...
+     * @param appAuthenticationFilter filter check xác thực jwt
+     */
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http
+				.cors(c -> c.disable())
 				.csrf(c -> c.disable())
 				.authorizeHttpRequests(request -> {
 					request
-						.anyRequest().permitAll();
+						.requestMatchers("/api/auth/**").permitAll()
+						.anyRequest().authenticated();
 					})
-				.exceptionHandling(E -> E.disable())
 				.sessionManagement(ss -> ss.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authenticationProvider(authenticationProvider())
 				.addFilterBefore(appAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
