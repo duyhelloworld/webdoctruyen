@@ -12,7 +12,6 @@ import ptit.edu.vn.entity.User;
 import ptit.edu.vn.exception.AppException;
 import ptit.edu.vn.repository.UserRepository;
 
-
 @Service
 public class AppUserDetailsService implements UserDetailsService {
     @Autowired
@@ -21,7 +20,6 @@ public class AppUserDetailsService implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Kiểm tra xem user có tồn tại trong database không?
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException(
                 "Không tồn tại tài khoản : " + username));
