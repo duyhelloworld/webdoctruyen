@@ -47,8 +47,7 @@ public class FileService {
         } catch (Exception e) {
             if (e instanceof FileAlreadyExistsException) {
                 throw new AppException(HttpStatus.BAD_REQUEST, 
-                    "Ảnh này đã tồn tại",
-                    "Hãy thử lại với tên file khác");
+                    "Ảnh này đã tồn tại. Hãy thử đổi tên file");
             }
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "Lỗi khi lưu file");
@@ -68,8 +67,7 @@ public class FileService {
         } catch (Exception e) {
             if (e instanceof FileAlreadyExistsException) {
                 throw new AppException(HttpStatus.BAD_REQUEST, 
-                    "Ảnh này đã tồn tại",
-                    "Hãy thử lại với tên file khác");
+                    "Ảnh này đã tồn tại. Hãy thử lại với tên file khác");
             }
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "Lỗi khi lưu file");
