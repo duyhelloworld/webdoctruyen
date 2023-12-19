@@ -1,7 +1,5 @@
 package ptit.edu.vn.security;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -30,28 +28,30 @@ public class JwtService {
     @Value("${application.jwt.issuer}")
     private String issuer;
 
-    public String generateToken(AppUserDetails appUserDetails) {
-        Date iat = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()), 
-            exp = Date.from(LocalDateTime.now().plusDays(expiration).atZone(ZoneId.systemDefault()).toInstant());
-        String role = appUserDetails.getAuthorities().stream()
-                .findFirst()
-                .orElseThrow(() -> new AppException(HttpStatus.UNAUTHORIZED,
-                    "Người dùng này chưa được cấp quyền"))
-                .getAuthority();
+    public String generateToken(Integer userId, String username, String role, String email) {
+        Date iat = new Date();
+        Date exp = new Date(iat.getTime() + expiration * 1000);
         if (!Role.isValidRole(role)) {
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi hệ thống");
         }
-        String token = JWT.create()
+        return JWT.create()
                 .withIssuer(issuer)
                 .withIssuedAt(iat)
                 .withExpiresAt(exp)
-                .withSubject(appUserDetails.getUsername())
+                .withSubject(username)
                 .withClaim("role", role)
-                .withClaim("uid", appUserDetails.getId().toString())
-                .withClaim("email", appUserDetails.getEmail())
+                .withClaim("uid", userId)
+                .withClaim("email", email)
                 .sign(Algorithm.HMAC256(secretKey));
-        return token;
     } 
+
+    public String generateToken(AppUserDetails userDetails) {
+        String role = userDetails.getAuthorities().iterator().next().getAuthority();
+        if (Role.isValidRole(role)) {
+            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi hệ thống");
+        }
+        return generateToken(userDetails.getId(), userDetails.getUsername(), role, userDetails.getEmail());
+    }
 
     public boolean validTokenType(String token) {
         try {
@@ -70,6 +70,8 @@ public class JwtService {
 
     public boolean validateToken(String token, UserDetails userDetail) {
         return getUsernameFromToken(token).equals(userDetail.getUsername()) 
+            && userDetail.isEnabled()
+            && userDetail.isCredentialsNonExpired()
             && userDetail.isAccountNonExpired()
             && userDetail.isAccountNonLocked();
     }
