@@ -1,6 +1,11 @@
--- Active: 1699019036200@@127.0.0.1@3306@webdocsach
-CREATE DATABASE webdocsach
+-- Active: 1702911289108@@127.0.0.1@3306@webdoctruyen
+CREATE DATABASE webdoctruyen
     DEFAULT CHARACTER SET = 'utf8mb4';
+
+-- Luôn chắc chắn password này trùng với trong application.properties
+CREATE USER 'webdoctruyen'@'%' IDENTIFIED WITH mysql_native_password BY 'password';;
+-- Grant select privilege to all databases;
+GRANT ALL PRIVILEGES ON webdoctruyen.* TO 'webdoctruyen'@'%';
     
 INSERT INTO book (title, author, release_date, upload_at, cover_image, description) VALUES
         ('One_Piece', 'Eiichiro Oda', '1997-12-12', '2023-10-10', 'one-piece.png', 'One Piece xoay quanh 1 nhóm cướp biển được gọi là Băng Hải tặc Mũ Rơm - Straw Hat Pirates - được thành lập và lãnh đạo bởi thuyền trưởng Monkey D. Luffy. Cậu bé Luffy có ước mơ tìm thấy kho báu vĩ đại nhất, One Piece, của Vua Hải Tặc đời trước Gold D. Roger và trở thành Vua Hải Tặc đời kế tiếp. Ở Việt Nam hiện nay, truyện đang được Nhà xuất bản Thanh Hóa xuất bản nhưng không có bản quyền, với tên gọi là Đảo Hải tặc Cốt truyện: Monkey D. Luffy, 1 cậu bé rất thích hải tặc có ước mơ tìm được kho báu One Piece và trở thành Vua hải tặc - Pirate King. Lúc nhỏ, Luffy tình cờ ăn phải trái quỉ (Devil Fruit) Gomu Gomu, nó cho cơ thể cậu khả năng co dãn đàn hồi như cao su nhưng đổi lại cậu sẽ không bao giờ biết bơi. Sau đó Luffy lại được Shank cứu thoát tuy nhiên ông ta bị mất 1 cánh tay. Sau đấy Shank chia tay Luffy và để lại cho cậu cái mũ rơm (Straw Hat) và nói rằng: "Sau này bao giờ thành cướp biển hãy gặp ta và trả lại nó". Chính lời nói này đã thúc đầy Luffy trở thành 1 cướp biển thật sự.'),
