@@ -2,7 +2,6 @@ package ptit.edu.vn.security;
 
 import java.io.IOException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,14 +20,18 @@ import ptit.edu.vn.repository.TokenDiedRepository;
 @Component
 public class AppAuthenticationFilter extends OncePerRequestFilter {
 
-	@Autowired
 	private UserDetailsService userDetailsService;
 
-	@Autowired
 	private JwtService jwtService;
 
-	@Autowired
 	private TokenDiedRepository tokenDiedRepository;
+
+	public AppAuthenticationFilter(UserDetailsService userDetailsService, JwtService jwtService,
+			TokenDiedRepository tokenDiedRepository) {
+		this.userDetailsService = userDetailsService;
+		this.jwtService = jwtService;
+		this.tokenDiedRepository = tokenDiedRepository;
+	}
 
 	@Override
 	protected void doFilterInternal(@NonNull HttpServletRequest request,

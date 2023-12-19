@@ -1,18 +1,22 @@
 package ptit.edu.vn.security;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
+
+import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParser;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import ptit.edu.vn.entity.Role;
 import ptit.edu.vn.exception.AppException;
@@ -28,52 +32,82 @@ public class JwtService {
     @Value("${application.jwt.issuer}")
     private String issuer;
 
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
+    }
+
+    private JwtParser getParser() {
+        return Jwts.parser()
+            .verifyWith(getSigningKey())
+            .requireIssuer(issuer)
+            .build();
+    }
+
     public String generateToken(Integer userId, String username, String role, String email) {
         Date iat = new Date();
-        Date exp = new Date(iat.getTime() + expiration * 1000);
+        Date exp = new Date(iat.getTime() + expiration * 24 * 60 * 60 * 1000);
         if (!Role.isValidRole(role)) {
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi hệ thống");
         }
-        return JWT.create()
-                .withIssuer(issuer)
-                .withIssuedAt(iat)
-                .withExpiresAt(exp)
-                .withSubject(username)
-                .withClaim("role", role)
-                .withClaim("uid", userId)
-                .withClaim("email", email)
-                .sign(Algorithm.HMAC256(secretKey));
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role);
+        claims.put("uid", userId);
+        claims.put("email", email);
+        return Jwts.builder()
+                .issuer(issuer)
+                .issuedAt(iat)
+                .subject(username)
+                .expiration(exp)
+                .claims(claims)
+                .signWith(getSigningKey()).compact();
     } 
 
     public String generateToken(AppUserDetails userDetails) {
         String role = userDetails.getAuthorities().iterator().next().getAuthority();
-        if (Role.isValidRole(role)) {
+        if (!Role.isValidRole(role)) {
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi hệ thống");
         }
         return generateToken(userDetails.getId(), userDetails.getUsername(), role, userDetails.getEmail());
     }
 
-    public boolean validTokenType(String token) {
-        try {
-            JWT
-                .require(Algorithm.HMAC256(secretKey))
-                .withIssuer(issuer)
-                .build()
-                .verify(token);
-            // Verified: iss, exp, alg
-            return true;
-        } catch (JWTVerificationException e) {
-            e.printStackTrace();
-            return false;
-        }
+    public Boolean validateToken(String token, UserDetails userDetails) { 
+        final String username = getUsernameFromToken(token); 
+        return username.equals(userDetails.getUsername())
+            && getExpirationDateFromToken(token).after(new Date()); 
+    } 
+
+    private <T> T getClaimsFromToken(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = getParser().parseSignedClaims(token).getPayload();
+        return claimsResolver.apply(claims);
+    }
+    
+    public String getUsernameFromToken(String token) {
+		return getClaimsFromToken(token, Claims::getSubject);
+	}
+
+	public Date getIssuedAtDateFromToken(String token) {
+		return getClaimsFromToken(token, Claims::getIssuedAt);
+	}
+    
+    public String getIssuerFromToken(String token) {
+        return getClaimsFromToken(token, Claims::getIssuer);
+    }
+    
+	public Date getExpirationDateFromToken(String token) {
+        return getClaimsFromToken(token, Claims::getExpiration);
+	}
+
+    // Custom claims
+    public String getEmailFromToken(String token) {
+        return getParser().parseSignedClaims(token).getPayload().get("email", String.class);
     }
 
-    public boolean validateToken(String token, UserDetails userDetail) {
-        return getUsernameFromToken(token).equals(userDetail.getUsername()) 
-            && userDetail.isEnabled()
-            && userDetail.isCredentialsNonExpired()
-            && userDetail.isAccountNonExpired()
-            && userDetail.isAccountNonLocked();
+    public Role getRoleFromToken(String token) {
+        return Role.getRole(getParser().parseSignedClaims(token).getPayload().get("role", String.class));
+    }
+
+    public Integer getUserIdFromToken(String token) {
+        return getParser().parseSignedClaims(token).getPayload().get("uid", Integer.class);
     }
 
     public String getTokenFromRequest(HttpServletRequest request) {
@@ -82,39 +116,5 @@ public class JwtService {
             return null;
         }
         return header.substring(7);
-    }
-
-    private <T> T getClaimFromToken(String token, Function<AppClaims, T> claimsResolver) {
-        JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secretKey)).withIssuer(issuer).build();
-        final AppClaims claims = new AppClaims(verifier.verify(token).getClaims());
-        return claimsResolver.apply(claims);
-    }
-    
-    public String getUsernameFromToken(String token) {
-		return getClaimFromToken(token, AppClaims::getSubject);
-	}
-
-	public Date getIssuedAtDateFromToken(String token) {
-		return getClaimFromToken(token, AppClaims::getIssueAt);
-	}
-
-    public String getEmailFromToken(String token) {
-        return getClaimFromToken(token, AppClaims::getEmail);
-    }
-
-    public String getIssuerFromToken(String token) {
-        return getClaimFromToken(token, AppClaims::getIssuer);
-    }
-
-	public Date getExpirationDateFromToken(String token) {
-		return getClaimFromToken(token, AppClaims::getExpireAt);
-	}
-
-    public Role getRoleFromToken(String token) {
-        return getClaimFromToken(token, AppClaims::getRole);
-    }
-
-    public Integer getUserIdFromToken(String token) {
-        return getClaimFromToken(token, AppClaims::getUid);
     }
 }

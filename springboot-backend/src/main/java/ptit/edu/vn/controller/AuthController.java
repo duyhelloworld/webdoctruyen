@@ -101,10 +101,8 @@ public class AuthController {
                     signInModel.getUsername(), signInModel.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
             AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
-            AuthModel authModel = new AuthModel(userDetails.getUsername(), userDetails.getEmail(), jwtService.generateToken(userDetails));
-            return ResponseEntity.ok(authModel);
+            return ResponseEntity.ok(new AuthModel(userDetails.getUsername(), userDetails.getEmail(), jwtService.generateToken(userDetails)));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -141,13 +139,18 @@ public class AuthController {
     @PostMapping("signout")
     public ResponseEntity<String> signOut(HttpServletRequest request) {
         String jwt = jwtService.getTokenFromRequest(request);
-        if (!StringUtils.hasLength(jwt) || !jwtService.validTokenType(jwt)) {
-            return ResponseEntity.badRequest()
-                .body("Xác thực không hợp lệ");
+        if (!StringUtils.hasLength(jwt)) {
+            throw new AppException(HttpStatus.UNAUTHORIZED, "Xác thực không hợp lệ");
         }
-        Integer uid = jwtService.getUserIdFromToken(jwt);
-        User user = userRepository.findById(uid)
-                    .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy user"));
+        String username = jwtService.getUsernameFromToken(jwt);
+        if (!StringUtils.hasLength(username)) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Lỗi xác thực. Vui lòng đăng nhập lại");
+        }
+        User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Tài khoản có thể đã bị xoá bởi quản trị viên"));
+        if (tokenDiedRepository.existsByToken(jwt)) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Bạn đã đăng xuất rồi");
+        }
         SecurityContextHolder.getContext().setAuthentication(null);
         tokenDiedRepository.save(new TokenDied(user, jwt));
         return ResponseEntity.ok("Đăng xuất thành công");

@@ -1,7 +1,5 @@
 package ptit.edu.vn.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,20 +11,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import lombok.AllArgsConstructor;
 
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 
 @Configuration
 @EnableWebSecurity
-@AllArgsConstructor
 public class WebSecurityConfig {
-	@Autowired
 	private AppAuthenticationFilter appAuthenticationFilter;
 
-	@Autowired
 	private UserDetailsService userDetailsService;
+
+	public WebSecurityConfig(AppAuthenticationFilter appAuthenticationFilter, UserDetailsService userDetailsService) {
+		this.appAuthenticationFilter = appAuthenticationFilter;
+		this.userDetailsService = userDetailsService;
+	}
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -53,11 +52,6 @@ public class WebSecurityConfig {
 		return http
 				.cors(c -> c.disable())
 				.csrf(c -> c.disable())
-				.authorizeHttpRequests(request -> {
-					request
-						.requestMatchers("/api/auth/**").permitAll()
-						.anyRequest().authenticated();
-					})
 				.sessionManagement(ss -> ss.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authenticationProvider(authenticationProvider())
 				.addFilterBefore(appAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
