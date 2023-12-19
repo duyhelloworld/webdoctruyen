@@ -1,6 +1,5 @@
 package ptit.edu.vn.controller;
 
-import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,11 +10,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import ptit.edu.vn.entity.Role;
@@ -31,7 +33,6 @@ import ptit.edu.vn.repository.UserRepository;
 import ptit.edu.vn.security.AppUserDetails;
 import ptit.edu.vn.security.JwtService;
 
-@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("api/auth")
 public class AuthController {
@@ -51,24 +52,48 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // private FileService fileService;    
-    // private ObjectMapper mapper;
+    @Autowired
+    private ObjectMapper mapper;
 
-    // @PostMapping("signup")
-    // public ResponseEntity<AuthModel> signUp(
-    //     @RequestPart("model") String model,
-    //     @RequestPart(value = "avatar", required = false) MultipartFile avatar) {
+     @PostMapping("signup")
+    public ResponseEntity<AuthModel> signUp(
+        @RequestPart String jsonModel,
+        @RequestPart(required = false) MultipartFile avatar) {
+        SignUpModel signUpModel = null;
+        try {
+            signUpModel = mapper.readValue(jsonModel, SignUpModel.class);
+        } catch (Exception e) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Dữ liệu không hợp lệ");
+        }
+        if (!StringUtils.hasText(signUpModel.getUsername()))
+            throw new AppException(HttpStatus.NOT_FOUND, "Thiếu username");
+        if (!StringUtils.hasLength(signUpModel.getPassword()))
+            throw new AppException(HttpStatus.NOT_FOUND, "Thiếu password");
+        if (!StringUtils.hasText(signUpModel.getEmail()))
+            throw new AppException(HttpStatus.NOT_FOUND, "Thiếu email");
 
-    //     SignUpModel signUpModel = null;
-    //     try {
-    //         signUpModel = mapper.readValue(model, SignUpModel.class);
-    //     } catch (Exception e) {
-    //         throw new AppException(HttpStatus.BAD_REQUEST, "Dữ liệu không hợp lệ");
-    //     }
+        if (userRepository.existsByUsername(signUpModel.getUsername())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Username này đã tồn tại");
+        }
+        if (userRepository.existsByEmail(signUpModel.getEmail())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Email này đã tồn tại");
+        }
 
+        // Đăng kí tài khoản luôn là USER
+        User user = new User(
+            signUpModel.getUsername(),
+            signUpModel.getEmail(),
+            passwordEncoder.encode(signUpModel.getPassword()),
+            Role.USER);
+        user.setAvatar("default-avatar.png");
+        User response = userRepository.save(user);
+        return ResponseEntity.ok(
+            new AuthModel(user.getUsername(), user.getEmail(), jwtService.generateToken(AppUserDetails.build(response))));
+    }
 
     @PostMapping("signin")
-    public ResponseEntity<AuthModel> signIn(@RequestBody SignInModel signInModel) {
+    public ResponseEntity<AuthModel> signIn(
+        @RequestBody SignInModel signInModel) {
         try {
             Authentication authentication = authConfiguration
                 .getAuthenticationManager()
@@ -83,10 +108,9 @@ public class AuthController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        throw new AppException(HttpStatus.BAD_REQUEST, "Đăng nhập thất bại", "Hãy thử kiểm tra lại");
+        throw new AppException(HttpStatus.BAD_REQUEST, "Đăng nhập thất bại");
     }
 
-    // Change pass by JSON in Body
     @PostMapping("change-password")
     public ResponseEntity<String> changePass(@RequestBody ChangePassModel model,
         HttpServletRequest request) {
@@ -96,7 +120,7 @@ public class AuthController {
         }
         Integer uid = jwtService.getUserIdFromToken(token);
         if (uid == null) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "Lỗi xác thực", "Vui lòng đăng nhập để kiểm tra lại");
+            throw new AppException(HttpStatus.BAD_REQUEST, "Lỗi xác thực. Vui lòng đăng nhập lại");
         }
         if (!StringUtils.hasText(model.getOldPassword()))
             throw new AppException(HttpStatus.NOT_FOUND, "Thiếu password cũ");
@@ -114,37 +138,10 @@ public class AuthController {
         return ResponseEntity.ok("Đổi mật khẩu thành công");
     }
 
-    @PostMapping("signup")
-    public ResponseEntity<AuthModel> signUp(
-        @RequestBody SignUpModel signUpModel) {
-        if (!StringUtils.hasText(signUpModel.getUsername()))
-            throw new AppException(HttpStatus.NOT_FOUND, "Thiếu username");
-        if (!StringUtils.hasLength(signUpModel.getPassword()))
-            throw new AppException(HttpStatus.NOT_FOUND, "Thiếu password");
-        if (!StringUtils.hasText(signUpModel.getEmail()))
-            throw new AppException(HttpStatus.NOT_FOUND, "Thiếu email");
-
-        if (userRepository.existsByUsername(signUpModel.getUsername())) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "Username này đã tồn tại");
-        }
-        if (userRepository.existsByEmail(signUpModel.getEmail())) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "Email này đã tồn tại");
-        }
-
-        // Đăng kí tài khoản luôn là USER
-        User user = new User(signUpModel.getUsername(), signUpModel.getEmail(), passwordEncoder.encode(signUpModel.getPassword()), Role.USER);
-        user.setAvatar("default-avatar.png");
-        User response = userRepository.save(user);
-        AuthModel authModel = new AuthModel(user.getUsername(), 
-            user.getEmail(), 
-            jwtService.generateToken(AppUserDetails.build(response)));
-        return ResponseEntity.ok(authModel);
-    }
-
     @PostMapping("signout")
     public ResponseEntity<String> signOut(HttpServletRequest request) {
         String jwt = jwtService.getTokenFromRequest(request);
-        if (jwt == null || !jwtService.validTokenType(jwt)) {
+        if (!StringUtils.hasLength(jwt) || !jwtService.validTokenType(jwt)) {
             return ResponseEntity.badRequest()
                 .body("Xác thực không hợp lệ");
         }
@@ -152,7 +149,7 @@ public class AuthController {
         User user = userRepository.findById(uid)
                     .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không tìm thấy user"));
         SecurityContextHolder.getContext().setAuthentication(null);
-        tokenDiedRepository.save(new TokenDied(user, LocalDateTime.now(), jwt));
+        tokenDiedRepository.save(new TokenDied(user, jwt));
         return ResponseEntity.ok("Đăng xuất thành công");
     }
 }

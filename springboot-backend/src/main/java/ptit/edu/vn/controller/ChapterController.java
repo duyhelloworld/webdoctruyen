@@ -14,7 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.CrossOrigin;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,7 +38,7 @@ import ptit.edu.vn.repository.ChapterRepository;
 import ptit.edu.vn.repository.CommentRepository;
 import ptit.edu.vn.service.file.FileService;
 
-@CrossOrigin(origins = "http://localhost:3000")
+
 @RestController
 @RequestMapping("api/chapter")
 public class ChapterController {
@@ -153,8 +153,7 @@ public class ChapterController {
             response = chapterRepository.save(chapter);
         } catch (FileAlreadyExistsException e) {
             throw new AppException(HttpStatus.BAD_REQUEST, 
-                    "Chương này đã tồn tại",
-                    "Hãy thử lại với tên chương khác");
+                    "Chương này đã tồn tại. Hãy thử lại với tên chương khác");
         } catch (IOException e) {
             throw new AppException(HttpStatus.BAD_REQUEST, 
                 "Lỗi khi lưu file");

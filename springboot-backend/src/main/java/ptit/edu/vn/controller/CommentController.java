@@ -23,7 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.CrossOrigin;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@CrossOrigin("http://localhost:3000")
 @RestController
 @RequestMapping("api/comment")
 public class CommentController {
@@ -90,7 +89,7 @@ public class CommentController {
         }
         Integer uid = jwtService.getUserIdFromToken(token);
         if (uid == null) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "Lỗi xác thực", "Vui lòng đăng nhập để kiểm tra lại");
+            throw new AppException(HttpStatus.BAD_REQUEST, "Lỗi xác thực. Vui lòng đăng nhập để kiểm tra lại");
         }
         if (commentModel.getChapterId() == null) {
             throw new AppException(HttpStatus.BAD_REQUEST, "Chương truyện không được để trống");

@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +24,6 @@ import ptit.edu.vn.model.CategoryModel;
 import ptit.edu.vn.repository.BookRepository;
 import ptit.edu.vn.repository.CategoryRepository;
 
-@CrossOrigin("http://localhost:3000")
 @RestController
 @RequestMapping("api/category")
 public class CategoryController {
@@ -62,10 +61,8 @@ public class CategoryController {
         Category category = CategoryModel.convert(categoryModel);
         if (categoryRepository.existsByName(category.getName())) {
             throw new AppException(HttpStatus.BAD_REQUEST,
-             "Thể loại này đã tồn tại",
-             "Thử thêm thể loại khác");
+             "Thể loại này đã tồn tại. Thử thể loại khác");
         }
-        category.setId(null);
         categoryRepository.save(category);
         return ResponseEntity.ok(CategoryModel.convert(category));
     }
