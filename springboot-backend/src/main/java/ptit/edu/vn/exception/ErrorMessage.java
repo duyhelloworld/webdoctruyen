@@ -1,5 +1,7 @@
 package ptit.edu.vn.exception;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -7,5 +9,10 @@ import lombok.Data;
 @AllArgsConstructor
 public class ErrorMessage {
     private String message;
-    private String solution;
+    private LocalDateTime timestamp;
+
+    public ErrorMessage(String message) {
+        this.message = message;
+        this.timestamp = LocalDateTime.now();
+    }
 }

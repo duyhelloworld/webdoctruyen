@@ -8,6 +8,7 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 
 @RestControllerAdvice
 public class AppExceptionHandler {
+
     private void sout(Exception e) {
         System.out.println("========================================");
         System.out.println("\u001B[31m" + e.getClass().getName());
@@ -23,15 +24,15 @@ public class AppExceptionHandler {
         if (ex instanceof AppException appEx) {
             return ResponseEntity
             .status(appEx.getStatusCode())
-            .body(new ErrorMessage(appEx.getMessage(), appEx.getSolution()));
+            .body(new ErrorMessage(appEx.getMessage()));
         } else if (ex instanceof MissingServletRequestPartException e) {
             return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
-            .body(new ErrorMessage("Thiếu trường " + e.getRequestPartName(), "Hãy thử lại với phần còn thiếu"));
+            .body(new ErrorMessage("Thiếu trường " + e.getRequestPartName()));
         }
         else 
             return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorMessage("có lỗi ở server", "liên hệ admin để biết thêm"));
+                .body(new ErrorMessage("Có lỗi ở server. Liên hệ admin để biết thêm"));
         }
 }
