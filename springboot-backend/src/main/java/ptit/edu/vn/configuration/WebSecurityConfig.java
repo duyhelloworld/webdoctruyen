@@ -1,4 +1,4 @@
-package ptit.edu.vn.security;
+package ptit.edu.vn.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,9 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import ptit.edu.vn.service.security.AppAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -32,19 +30,10 @@ public class WebSecurityConfig {
 		return new BCryptPasswordEncoder();
 	}
 
-	@Bean
-	AuthenticationProvider authenticationProvider() {
-		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-		provider.setUserDetailsService(userDetailsService);
-		provider.setPasswordEncoder(passwordEncoder());
-		return provider;
-	}
-
     /**
      * @param CSRF                    tắt cái csrf mặc định vì đã dùng jwt rồi
      * @param authorizeHttpRequest 	  phân quyền request
      * @param sessionManagement       t?t session vì dùng jwt
-     * @param authenticationProvider  mở rộng cho google, facebook, ...
      * @param appAuthenticationFilter filter check xác thực jwt
      */
     @Bean
@@ -52,8 +41,8 @@ public class WebSecurityConfig {
 		return http
 				.cors(c -> c.disable())
 				.csrf(c -> c.disable())
-				.sessionManagement(ss -> ss.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authenticationProvider(authenticationProvider())
+				.userDetailsService(userDetailsService)
+				.sessionManagement(ss -> ss.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 				.addFilterBefore(appAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.build();
 	}

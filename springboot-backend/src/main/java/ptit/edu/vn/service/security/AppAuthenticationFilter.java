@@ -1,4 +1,4 @@
-package ptit.edu.vn.security;
+package ptit.edu.vn.service.security;
 
 import java.io.IOException;
 

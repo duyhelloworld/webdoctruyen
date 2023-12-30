@@ -10,9 +10,9 @@ import ptit.edu.vn.exception.AppException;
 import ptit.edu.vn.model.CommentModel;
 import ptit.edu.vn.repository.ChapterRepository;
 import ptit.edu.vn.repository.CommentRepository;
-import ptit.edu.vn.security.AppUserDetails;
-import ptit.edu.vn.security.AppUserDetailsService;
-import ptit.edu.vn.security.JwtService;
+import ptit.edu.vn.service.security.AppUserDetails;
+import ptit.edu.vn.service.security.AppUserDetailsService;
+import ptit.edu.vn.service.security.JwtService;
 
 import java.time.LocalDateTime;
 import java.util.List;

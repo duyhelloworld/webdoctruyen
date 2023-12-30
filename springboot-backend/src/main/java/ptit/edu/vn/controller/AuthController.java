@@ -30,8 +30,8 @@ import ptit.edu.vn.model.SignInModel;
 import ptit.edu.vn.model.SignUpModel;
 import ptit.edu.vn.repository.TokenDiedRepository;
 import ptit.edu.vn.repository.UserRepository;
-import ptit.edu.vn.security.AppUserDetails;
-import ptit.edu.vn.security.JwtService;
+import ptit.edu.vn.service.security.AppUserDetails;
+import ptit.edu.vn.service.security.JwtService;
 
 @RestController
 @RequestMapping("api/auth")
