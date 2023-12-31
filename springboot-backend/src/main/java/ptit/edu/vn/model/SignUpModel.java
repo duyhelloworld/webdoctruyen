@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class SignUpModel {
-    private String fullName;
+    private String fullname;
     
     private String username;
     

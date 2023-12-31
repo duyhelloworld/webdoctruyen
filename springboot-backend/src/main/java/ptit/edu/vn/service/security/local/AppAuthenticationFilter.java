@@ -1,4 +1,4 @@
-package ptit.edu.vn.service.security;
+package ptit.edu.vn.service.security.local;
 
 import java.io.IOException;
 
@@ -38,14 +38,10 @@ public class AppAuthenticationFilter extends OncePerRequestFilter {
 		@NonNull HttpServletResponse response,
 		@NonNull FilterChain filterChain)
 			throws ServletException, IOException {
-			String authHeader = request.getHeader("Authorization"); 
-			String token = null; 
-			String username = null; 
-			if (authHeader != null && authHeader.startsWith("Bearer ")) { 
-				token = authHeader.substring(7); 
-				username = jwtService.getUsernameFromToken(token); 
-			} 
-		
+				
+			String token = jwtService.getTokenFromRequest(request); 
+			String username = jwtService.getUsernameFromToken(token); 
+
 			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) { 
 				UserDetails userDetails = userDetailsService.loadUserByUsername(username); 
 				if (jwtService.validateToken(token, userDetails) && (tokenDiedRepository.count() > 0 && !tokenDiedRepository.existsByToken(token))) { 

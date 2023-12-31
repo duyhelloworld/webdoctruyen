@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
@@ -30,8 +31,10 @@ import ptit.edu.vn.model.SignInModel;
 import ptit.edu.vn.model.SignUpModel;
 import ptit.edu.vn.repository.TokenDiedRepository;
 import ptit.edu.vn.repository.UserRepository;
-import ptit.edu.vn.service.security.AppUserDetails;
-import ptit.edu.vn.service.security.JwtService;
+import ptit.edu.vn.service.file.FileService;
+import ptit.edu.vn.service.security.AbstractUserInfo;
+import ptit.edu.vn.service.security.local.JwtService;
+import ptit.edu.vn.service.security.local.LocalUserDetails;
 
 @RestController
 @RequestMapping("api/auth")
@@ -54,6 +57,9 @@ public class AuthController {
 
     @Autowired
     private ObjectMapper mapper;
+
+    @Autowired
+    private FileService fileService;
 
      @PostMapping("signup")
     public ResponseEntity<AuthModel> signUp(
@@ -78,17 +84,19 @@ public class AuthController {
         if (userRepository.existsByEmail(signUpModel.getEmail())) {
             throw new AppException(HttpStatus.BAD_REQUEST, "Email này đã tồn tại");
         }
+        String fileNameResult = fileService.saveAvatar(avatar);
 
         // Đăng kí tài khoản luôn là USER
         User user = new User(
             signUpModel.getUsername(),
             signUpModel.getEmail(),
             passwordEncoder.encode(signUpModel.getPassword()),
+            signUpModel.getFullname(),
+            fileNameResult,
             Role.USER);
-        user.setAvatar("default-avatar.png");
         User response = userRepository.save(user);
         return ResponseEntity.ok(
-            new AuthModel(user.getUsername(), user.getEmail(), jwtService.generateToken(AppUserDetails.build(response))));
+            new AuthModel(user.getUsername(), user.getEmail(), jwtService.generateToken(LocalUserDetails.build(response))));
     }
 
     @PostMapping("signin")
@@ -101,7 +109,7 @@ public class AuthController {
                     signInModel.getUsername(), signInModel.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
+            LocalUserDetails userDetails = (LocalUserDetails) authentication.getPrincipal();
             return ResponseEntity.ok(new AuthModel(userDetails.getUsername(), userDetails.getEmail(), jwtService.generateToken(userDetails)));
         } catch (Exception e) {
             e.printStackTrace();
@@ -110,23 +118,15 @@ public class AuthController {
     }
 
     @PostMapping("change-password")
-    public ResponseEntity<String> changePass(@RequestBody ChangePassModel model,
-        HttpServletRequest request) {
-        String token = jwtService.getTokenFromRequest(request);
-        if (token == null) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Bạn cần đăng nhập để thực hiện hành động này!");
-        }
-        Integer uid = jwtService.getUserIdFromToken(token);
-        if (uid == null) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "Lỗi xác thực. Vui lòng đăng nhập lại");
-        }
+    public ResponseEntity<String> changePass(@RequestBody ChangePassModel model, 
+    @AuthenticationPrincipal AbstractUserInfo userInfo) {
         if (!StringUtils.hasText(model.getOldPassword()))
             throw new AppException(HttpStatus.NOT_FOUND, "Thiếu password cũ");
         if (!StringUtils.hasLength(model.getNewPassword()))
             throw new AppException(HttpStatus.NOT_FOUND, "Thiếu password mới");
         if(model.getNewPassword().equals(model.getOldPassword()))
             throw new AppException(HttpStatus.BAD_REQUEST, "Mật khẩu mới không được trùng với mật khẩu cũ");
-        User user = userRepository.findById(uid)
+        User user = userRepository.findById(userInfo.getId())
                     .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Tài khoản có thể đã bị xoá bởi quản trị viên"));
         if (!passwordEncoder.matches(model.getOldPassword(), user.getPassword())) {
             throw new AppException(HttpStatus.BAD_REQUEST, "Mật khẩu cũ không đúng");

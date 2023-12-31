@@ -1,4 +1,4 @@
--- Active: 1702911289108@@127.0.0.1@3306@webdoctruyen
+-- Active: 1703168100323@@127.0.0.1@3306@webdoctruyen
 CREATE DATABASE webdoctruyen
     DEFAULT CHARACTER SET = 'utf8mb4';
 

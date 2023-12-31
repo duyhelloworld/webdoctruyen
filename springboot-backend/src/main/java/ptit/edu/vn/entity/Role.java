@@ -1,25 +1,47 @@
 package ptit.edu.vn.entity;
 
+import java.util.Set;
+
 public enum Role {
-    ADMIN,
-    USER;
-
-    public static boolean isValidRole(String role) {
-        for (Role r : Role.values()) {
-            if (r.toString().equals(role))
-                return true;
+    USER {
+        @Override
+        public Set<Permission> getPermissions() {
+            return Set.of(
+                Permission.READ_MANGA,
+                Permission.RATE_MANGA,
+                Permission.WRITE_COMMENT,
+                Permission.REPORT_COMMENT,
+                Permission.UPDATE_PROFILE,
+                Permission.CHANGE_PASSWORD
+            );
         }
-        return false;
-    }
-
-    public static Role getRole(String role) {
-        switch (role) {
-            case "ADMIN":
-                return ADMIN;  
-            case "USER":
-                return USER;      
-            default:
-                return null;
+    },
+    SUPERADMIN {
+        @Override
+        public Set<Permission> getPermissions() {
+            return Set.of(
+                Permission.READ_MANGA,       Permission.RATE_MANGA,
+                Permission.MANAGE_MANGA,     Permission.READ_GENRE,
+                Permission.MANAGE_GENRE,     Permission.WRITE_COMMENT,
+                Permission.REPORT_COMMENT,   Permission.MANAGE_COMMENT,
+                Permission.UPDATE_PROFILE,   Permission.MANAGE_USERS,
+                Permission.CHANGE_PASSWORD
+            );
         }
-    }
+    },
+    ADMIN {
+        @Override
+        public Set<Permission> getPermissions() {
+            return Set.of(
+                Permission.READ_MANGA,       Permission.RATE_MANGA,
+                Permission.MANAGE_MANGA,     Permission.READ_GENRE,
+                Permission.MANAGE_GENRE,     Permission.WRITE_COMMENT,
+                Permission.REPORT_COMMENT,   Permission.MANAGE_COMMENT,
+                Permission.UPDATE_PROFILE,   Permission.MANAGE_USERS,
+                Permission.REQUEST_ACCOUNT_DELETION,  Permission.CHANGE_PASSWORD
+            );
+        }
+    };
+
+    public abstract Set<Permission> getPermissions();
 }

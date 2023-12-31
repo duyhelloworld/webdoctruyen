@@ -19,7 +19,6 @@ public class CommentModel {
     private Boolean isEdited;
 
     private String userName;
-    private Integer userId;
     private String userAvatar;
 
     private Integer chapterId;
@@ -30,8 +29,7 @@ public class CommentModel {
         commentModel.setContent(comment.getContent());
         commentModel.setCommentAt(comment.getCommentAt());
         commentModel.setIsEdited(comment.getIsEdited());
-        commentModel.setUserName(comment.getUser().getFullName());
-        commentModel.setUserId(comment.getUser().getId());
+        commentModel.setUserName(comment.getUser().getFullname());
         commentModel.setUserAvatar(comment.getUser().getAvatar());
         commentModel.setChapterId(comment.getChapter().getId());
         return commentModel;

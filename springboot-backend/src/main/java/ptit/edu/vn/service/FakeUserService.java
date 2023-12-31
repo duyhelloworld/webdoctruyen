@@ -13,14 +13,16 @@ import ptit.edu.vn.entity.User;
 import ptit.edu.vn.repository.UserRepository;
 
 @Component
-public class FakeUserService implements CommandLineRunner {
+public class FakeUserService 
+// implements CommandLineRunner 
+{
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UserRepository userRepository;
 
-    @Override
+    // @Override
     public void run(String... args) throws Exception {
         String pass = passwordEncoder.encode("12345678");
         List<User> users = new ArrayList<>();

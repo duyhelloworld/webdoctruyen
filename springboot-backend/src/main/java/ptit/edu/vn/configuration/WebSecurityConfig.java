@@ -2,6 +2,7 @@ package ptit.edu.vn.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -11,7 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import ptit.edu.vn.service.security.AppAuthenticationFilter;
+import ptit.edu.vn.service.security.local.AppAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -41,8 +42,10 @@ public class WebSecurityConfig {
 		return http
 				.cors(c -> c.disable())
 				.csrf(c -> c.disable())
+				.authorizeHttpRequests(r -> r.anyRequest().permitAll())
 				.userDetailsService(userDetailsService)
 				.sessionManagement(ss -> ss.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+				.oauth2Login(Customizer.withDefaults())
 				.addFilterBefore(appAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.build();
 	}

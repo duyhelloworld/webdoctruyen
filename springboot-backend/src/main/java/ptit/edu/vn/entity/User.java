@@ -2,14 +2,16 @@ package ptit.edu.vn.entity;
 
 import java.util.List;
 
+import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.Enumerated;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -20,15 +22,14 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    private String fullName = "Không biết";
     
-    @Column(nullable = false, unique = true)
+    @Column(length = 100, nullable = false, unique = true)
     private String username;
+    
+    private String fullname;
 
-    // Nếu user ko đặt avatar thì sẽ lấy avatar mặc định
     @Column(nullable = false)
-    private String avatar = "default-avatar.png";
+    private String avatar;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -37,20 +38,25 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
+    private boolean isEnable;
 
-    public User(String username, String email, String password, Role role) {
+    private boolean isAccountNonExpired;
+
+    private boolean isAccountNonLocked;
+
+    private boolean isCredentialsNonExpired;
+    
+    public User(String username, String email, String password, String fullname, String avatar, Role role) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.role = role;
-    }
-
-    public User(String username, String email, String password, String avatar, String fullName, Role role) {
-        this(username, email, password, role);
+        this.fullname = fullname;
         this.avatar = avatar;
-        this.fullName = fullName;
+        this.isEnable = true;
+        this.isAccountNonExpired = true;
+        this.isAccountNonLocked = true;
+        this.isCredentialsNonExpired = true;
     }
 
     @OneToMany(mappedBy = "user")
@@ -61,4 +67,11 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<TokenDied> TokenDieds;
+
+    @Enumerated(EnumType.STRING)
+    private CommonOAuth2Provider provider;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
 }

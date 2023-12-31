@@ -93,7 +93,7 @@ public class BookController {
 	@GetMapping
 	@Transactional
 	public ResponseEntity<List<BookModel>> getBookByName(
-			@RequestParam(value = "keyword") String keyword) {
+			@RequestParam String keyword) {
 		// StringUtil check ko null và có kí tự 
 		if (!StringUtils.hasLength(keyword))
 			throw new AppException(HttpStatus.BAD_REQUEST, 

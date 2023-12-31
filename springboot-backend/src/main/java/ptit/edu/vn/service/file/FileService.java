@@ -24,6 +24,8 @@ public class FileService {
     public final String BOOK_DIR  = ROOT_DIR + "mangas";
     public final String COVERIMAGE_DIR = ROOT_DIR + "coverimages";
     public final String AVATAR_DIR = ROOT_DIR + "avatars";
+    public final String DEFAULT_COVERIMAGE = "default-coverimage.png";
+    public final String DEFAULT_AVATAR = "default-avatar.png";
 
     public boolean createNewBook(String folderName) {
         Path path = Path.of(BOOK_DIR, folderName);
@@ -54,16 +56,20 @@ public class FileService {
         }
     } 
 
-    public void saveAvatar(MultipartFile file) {
+    public String saveAvatar(MultipartFile file) {
         try {
+            if (file == null || file.isEmpty()) {
+                return DEFAULT_AVATAR;            
+            }
             // Lưu file vào thư mục avatar bằng stream 
             Path path = Path.of(AVATAR_DIR);
-            if (FileValidatorService.ValidFileAvatar(file)) {
+            if (validFile(file, "png")) {
                 if (Files.exists(path)) {
                     throw new FileAlreadyExistsException(path.toString());
                 }
                 Files.copy(file.getInputStream(), path);
             }
+            return file.getOriginalFilename();
         } catch (Exception e) {
             if (e instanceof FileAlreadyExistsException) {
                 throw new AppException(HttpStatus.BAD_REQUEST, 
@@ -88,8 +94,8 @@ public class FileService {
         // Lưu lại những file hợp lệ. nếu file ko hợp lệ thì skip
         int i = 0; 
         for (MultipartFile file : files) {
-            if (FileValidatorService.ValidFileChapter(file)) {
-                String newFileName = String.format("%02d.jpg", ++i);
+            if (validFile(file, "jpg")) {
+                String newFileName = "%02d.jpg".formatted(++i);
                 if (Files.exists(Path.of(dir.toString(), newFileName))) {
                     continue;
                 }
@@ -122,7 +128,7 @@ public class FileService {
     }
 
     public Resource getChapter(String bookName, String chapterName, Integer fileId){
-        String fileName = String.format("%02d.jpg", fileId);
+        String fileName = "%02d.jpg".formatted(fileId);
         String chapterFolder = Path.of(BOOK_DIR, bookName, chapterName, fileName).toString();
         File file = new File(chapterFolder);
         if (!file.exists()) 
@@ -197,5 +203,19 @@ public class FileService {
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "Lỗi khi xóa file");
         }
+    }
+
+    private boolean validFile(MultipartFile file, String extension) {
+        if (file == null || file.isEmpty())
+            return false;
+        String fileName = file.getOriginalFilename();
+        if (fileName != null) {
+            if (fileName != null && 
+            !fileName.isBlank() && 
+            fileName.substring(fileName.lastIndexOf(".") + 1)
+                .equals(extension))
+                return true;
+        }
+        return false;
     }
 }

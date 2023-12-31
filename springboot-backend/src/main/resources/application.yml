@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/webdoctruyen
+    url: jdbc:mysql://localhost:3306/webdoctruyen?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
     username: webdoctruyen
     password: password
   jpa:
@@ -16,6 +16,16 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 558750477314-gsp55lnnjuj7ki5qint3epkr7p8s5dlj.apps.googleusercontent.com
+            client-secret: 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
+          github:
+            client-id: Iv1.99344991fefa2587
+            client-secret: 9cb9852fe6202faffbe10e785e88e1a6fa6b8fa9
       
 # Cố định port
 server:

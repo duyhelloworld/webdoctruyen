@@ -28,7 +28,7 @@ public class UserController {
     private UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<Resource> getAvatar(@RequestParam("avatar") String avatar) {            
+    public ResponseEntity<Resource> getAvatar(@RequestParam String avatar) {            
         return ResponseEntity.ok()
         .contentType(MediaType.IMAGE_PNG)
         .body(fileService.getAvatar(avatar));
@@ -43,7 +43,7 @@ public class UserController {
                 userModel.setId(user.getId());
                 userModel.setUsername(user.getUsername());
                 userModel.setEmail(user.getEmail());
-                userModel.setFullName(user.getFullName());
+                userModel.setFullname(user.getFullname());
                 return userModel;
             }).toList());
     }
