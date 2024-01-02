@@ -8,7 +8,7 @@
 		<version>3.2.1</version>
 		<relativePath/>
 	</parent>
-	<groupId>ptit.edu.vn</groupId>
+	<groupId>com.duyhelloworld</groupId>
 	<artifactId>springboot-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>springboot-backend</name>

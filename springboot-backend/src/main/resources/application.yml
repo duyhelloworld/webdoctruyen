@@ -8,7 +8,6 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
         "[format_sql]": true
     hibernate:
       ddl-auto: update
@@ -23,6 +22,9 @@ spring:
           google:
             client-id: 558750477314-gsp55lnnjuj7ki5qint3epkr7p8s5dlj.apps.googleusercontent.com
             client-secret: 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
+            scope:
+            - email
+            - profile
           github:
             client-id: Iv1.99344991fefa2587
             client-secret: 9cb9852fe6202faffbe10e785e88e1a6fa6b8fa9
