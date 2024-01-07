@@ -2,7 +2,7 @@ package com.duyhelloworld.entity;
 
 import java.util.List;
 
-import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
+import com.duyhelloworld.service.security.Provider;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @Entity
@@ -32,13 +33,14 @@ public class User {
     @Column(nullable = false)
     private String avatar;
 
-    @Column(unique = true)
+    @Column(length = 100)
     private String email;
 
     // pass sẽ được hash trước khi vào đây
+    @ToString.Exclude
     private String password;
 
-    private boolean isEnable;
+    private boolean isEnabled;
 
     private boolean isAccountNonExpired;
 
@@ -47,31 +49,34 @@ public class User {
     private boolean isCredentialsNonExpired;
     
     @Enumerated(EnumType.STRING)
-    private CommonOAuth2Provider provider;
+    private Provider provider;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
 
-    public User(String username, String email, String password, String fullname, String avatar, Role role) {
+    public User(String username, String email, String password, String avatar, String fullname, Role role) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.role = role;
         this.fullname = fullname;
         this.avatar = avatar;
-        this.isEnable = true;
+        this.isEnabled = true;
         this.isAccountNonExpired = true;
         this.isAccountNonLocked = true;
         this.isCredentialsNonExpired = true;
     }
-    
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "user")
     private List<Comment> Comments;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @OneToMany(mappedBy = "user")
     private List<Rating> Ratings;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private List<TokenDied> TokenDieds;
 }

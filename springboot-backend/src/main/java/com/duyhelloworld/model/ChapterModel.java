@@ -2,8 +2,6 @@ package com.duyhelloworld.model;
 
 import java.time.LocalDateTime;
 
-import org.springframework.util.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Data;
@@ -29,36 +27,23 @@ public class ChapterModel {
         ChapterModel chapterModel = new ChapterModel();
         chapterModel.setChapterId(chapter.getId());
 
-        if (StringUtils.hasText(chapter.getTitle())) {
-            chapterModel.setTitle(chapter.getTitle());
-        } else {
-            chapterModel.setTitle("Chapter_" + chapter.getId());
-        }
+        chapterModel.setTitle(chapter.getTitle());
         chapterModel.setUploadAt(chapter.getUploadAt());
 
         chapterModel.setCommentCount(
             chapter.getComments() != null
             ? chapter.getComments().size()
             : 0);
-            
-        chapterModel.setBookId(chapter.getBook().getId());
-        chapterModel.setBookTitle(chapter.getBook().getTitle());
+        if (chapter.getBook() != null) {
+            chapterModel.setBookId(chapter.getBook().getId());
+            chapterModel.setBookTitle(chapter.getBook().getTitle());
+        }
         return chapterModel;
     }
 
     public static ChapterModel convert(Chapter chapter, Integer numberOfImage) {
-        ChapterModel chapterModel = new ChapterModel();
-        chapterModel.setChapterId(chapter.getId());
-        chapterModel.setTitle(chapter.getTitle());
-        chapterModel.setUploadAt(chapter.getUploadAt());
+        ChapterModel chapterModel = convert(chapter);
         chapterModel.setNumberOfImage(numberOfImage);
-
-        chapterModel.setCommentCount(chapter.getComments() != null
-            ? chapter.getComments().size()
-            : 0);
-            
-        chapterModel.setBookId(chapter.getBook().getId());
-        chapterModel.setBookTitle(chapter.getBook().getTitle());
         return chapterModel;
     }
 

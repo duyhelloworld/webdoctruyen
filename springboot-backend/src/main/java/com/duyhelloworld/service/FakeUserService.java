@@ -30,7 +30,7 @@ public class FakeUserService
         users.add(new User("nguyenducluong123", "nguyenducluong@gmail.com", pass, "default-avatar.png", "nguyễn đức lương", Role.USER));
         users.add(new User("tranhuudat123", "tranhuudat@gmail.com", pass, "default-avatar.png", "trần hữu đạt", Role.USER));
         users.add(new User("admin", "admin@gmail.com", pass, "default-avatar.png", "Adminitrastor", Role.ADMIN));
-        if (userRepository.count() > 0) {
+        if (userRepository.count() > users.size()) {
             return;
         }
         userRepository.saveAll(users);

@@ -23,6 +23,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import com.duyhelloworld.entity.Role;
 import com.duyhelloworld.exception.AppException;
+import com.duyhelloworld.service.security.usertype.LocalUser;
 
 @Service
 public class JwtService {
@@ -51,7 +52,7 @@ public class JwtService {
                 .sign(getAlgorithm());
     } 
 
-    public String generateToken(LocalUserDetails userDetails) {
+    public String generateToken(LocalUser userDetails) {
         Optional<? extends GrantedAuthority> authority = userDetails.getAuthorities().stream().findFirst();
         if (!authority.isPresent()) {
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi hệ thống");

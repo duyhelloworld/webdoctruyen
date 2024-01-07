@@ -15,9 +15,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
+
 import com.duyhelloworld.repository.TokenDiedRepository;
 
 @Component
+@AllArgsConstructor
 public class AppAuthenticationFilter extends OncePerRequestFilter {
 
 	private UserDetailsService userDetailsService;
@@ -26,27 +29,20 @@ public class AppAuthenticationFilter extends OncePerRequestFilter {
 
 	private TokenDiedRepository tokenDiedRepository;
 
-	public AppAuthenticationFilter(UserDetailsService userDetailsService, JwtService jwtService,
-			TokenDiedRepository tokenDiedRepository) {
-		this.userDetailsService = userDetailsService;
-		this.jwtService = jwtService;
-		this.tokenDiedRepository = tokenDiedRepository;
-	}
-
 	@Override
 	protected void doFilterInternal(@NonNull HttpServletRequest request,
 		@NonNull HttpServletResponse response,
 		@NonNull FilterChain filterChain)
 			throws ServletException, IOException {
-			String token = jwtService.getTokenFromRequest(request);
-			if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) { 
-				UserDetails userDetails = userDetailsService.loadUserByUsername(jwtService.getUsernameFromToken(token)); 
-				if (jwtService.validateToken(token, userDetails) && (tokenDiedRepository.count() > 0 && !tokenDiedRepository.existsByToken(token))) { 
-					UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()); 
-					authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request)); 
-					SecurityContextHolder.getContext().setAuthentication(authToken); 
-				} 
+		String token = jwtService.getTokenFromRequest(request);
+		if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) { 
+			UserDetails userDetails = userDetailsService.loadUserByUsername(jwtService.getUsernameFromToken(token)); 
+			if (jwtService.validateToken(token, userDetails) && (tokenDiedRepository.count() > 0 && !tokenDiedRepository.existsByToken(token))) { 
+				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()); 
+				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request)); 
+				SecurityContextHolder.getContext().setAuthentication(authToken); 
 			} 
-			filterChain.doFilter(request, response); 
+		} 
+		filterChain.doFilter(request, response); 
 	}
 }

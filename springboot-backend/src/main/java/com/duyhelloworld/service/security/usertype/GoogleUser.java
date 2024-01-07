@@ -1,23 +1,21 @@
-package com.duyhelloworld.service.security.oauth2.provider;
+package com.duyhelloworld.service.security.usertype;
 
 import java.util.Optional;
 
-import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import com.duyhelloworld.service.security.oauth2.OAuth2UserDetail;
+import com.duyhelloworld.service.AppUserDetail;
+import com.duyhelloworld.service.security.Provider;
 
-import lombok.ToString;
-
-@ToString
-public class GoogleUser extends OAuth2UserDetail {
+public class GoogleUser extends AppUserDetail {
+    
     public GoogleUser(OAuth2User oAuth2User) {
-        super(oAuth2User);
+        super(oAuth2User, null);
     }
 
     @Override
-    public CommonOAuth2Provider getProvider() {
-        return CommonOAuth2Provider.GOOGLE;
+    public Provider getProvider() {
+        return Provider.GOOGLE;
     }
 
     @Override

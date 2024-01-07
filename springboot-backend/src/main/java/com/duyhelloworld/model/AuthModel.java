@@ -8,5 +8,7 @@ import lombok.Data;
 public class AuthModel {
     private String username;
     private String email;
+    private String fullname;
+    private String avatar;
     private String jwt;
 }

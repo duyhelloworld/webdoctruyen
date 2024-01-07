@@ -15,14 +15,14 @@ public class HomeController {
     }
 
     @GetMapping("/admin")
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SUPER_ADMIN') or hasAuthority('SCOPE_admin')")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SUPER_ADMIN')")
     public String admin(@AuthenticationPrincipal Object userInfo) {
-        return "Info : " + userInfo.getClass() + "</br>" + userInfo;
+        return "Info : </br>Class: " + userInfo.getClass() + "</br>ToString: " + userInfo;
     }
 
     @GetMapping("/user")
     @PreAuthorize("hasAuthority('USER')")
     public String user(@AuthenticationPrincipal Object userInfo) {
-        return "Info : " + userInfo.getClass() + "</br>" + userInfo;
+        return "Info : </br>Class: " + userInfo.getClass() + "</br>ToString: " + userInfo;
     }
 }

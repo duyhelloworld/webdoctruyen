@@ -19,16 +19,18 @@ import com.duyhelloworld.entity.Role;
 import com.duyhelloworld.entity.User;
 import com.duyhelloworld.exception.AppException;
 import com.duyhelloworld.repository.UserRepository;
-import com.duyhelloworld.service.security.local.LocalUserDetails;
-import com.duyhelloworld.service.security.oauth2.OAuth2UserDetail;
-import com.duyhelloworld.service.security.oauth2.OAuth2UserDetailFactory;
+import com.duyhelloworld.service.AppUserDetail;
+import com.duyhelloworld.service.security.usertype.FacebookUser;
+import com.duyhelloworld.service.security.usertype.GithubUser;
+import com.duyhelloworld.service.security.usertype.GoogleUser;
+import com.duyhelloworld.service.security.usertype.LocalUser;
 
 @Service
 public class UserDetailService extends DefaultOAuth2UserService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
 
-    public User getUser(String username) {
+    private User getUser(String username) {
         return userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException(
                 "Không tồn tại tài khoản : " + username));
@@ -38,7 +40,7 @@ public class UserDetailService extends DefaultOAuth2UserService implements UserD
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = getUser(username);
-        return LocalUserDetails.build(user);
+        return new LocalUser(user);
     }
 
     @Override
@@ -52,24 +54,36 @@ public class UserDetailService extends DefaultOAuth2UserService implements UserD
     }
 
     private OAuth2User processOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
-        OAuth2UserDetail oAuthUserDetail = OAuth2UserDetailFactory.getOAuth2UserDetail(
-            oAuth2User,
-            userRequest.getClientRegistration().getRegistrationId());
-
-        Optional<User> user = userRepository.findByUsername(oAuthUserDetail.getUsername());
+        Provider provider = Provider.valueOf(userRequest.getClientRegistration().getRegistrationId().toUpperCase());
+        AppUserDetail userDetail;
+        switch (provider) {
+            case FACEBOOK:
+                userDetail = new FacebookUser(oAuth2User);
+                break;
+            case GOOGLE:
+                userDetail = new GoogleUser(oAuth2User);
+                break;
+            case GITHUB:
+                userDetail = new GithubUser(oAuth2User);
+                break;
+            default:
+                throw new AppException(HttpStatus.BAD_REQUEST, "Không hỗ trợ đăng nhập bằng " + provider);
+        }
+        Optional<User> inDb = userRepository.findByUsername(userDetail.getUsername());
         // Save Db
         User tempUser;
-        if (user.isEmpty() || !user.get().getProvider().equals(oAuthUserDetail.getProvider())) {
-            tempUser = registerNewUser(oAuthUserDetail);
+        if (inDb.isEmpty() || !inDb.get().getProvider().equals(userDetail.getProvider())) {
+            tempUser = registerNewUser(userDetail);
+            System.out.println("Đăng kí thành công tài khoản " + tempUser.getEmail());
         } else {
-            tempUser = updateExistingUser(user.get(), oAuthUserDetail);
+            tempUser = updateExistingUser(inDb.get(), userDetail);
+            System.out.println("Đăng nhập thành công tài khoản " + tempUser.getEmail());
         }
-        oAuthUserDetail.setUserId(tempUser.getId());
-        oAuthUserDetail.setRole(tempUser.getRole());
-        return oAuthUserDetail;
+        userDetail.setUser(tempUser);
+        return userDetail;
     }
 
-    private User registerNewUser(OAuth2UserDetail oAuthUserDetail) {
+    private User registerNewUser(AppUserDetail oAuthUserDetail) {
         User user = new User();
         if (oAuthUserDetail.getUsername() == null) {
             throw new AppException(HttpStatus.BAD_REQUEST, "Không thể đăng ký tài khoản.");
@@ -80,8 +94,7 @@ public class UserDetailService extends DefaultOAuth2UserService implements UserD
         user.setEmail(oAuthUserDetail.getEmail());
         user.setAvatar(oAuthUserDetail.getAvatar());
         user.setPassword(null);
-
-        user.setEnable(true);
+        user.setEnabled(true);
         user.setCredentialsNonExpired(true);
         user.setAccountNonLocked(true);
         user.setAccountNonExpired(true);
@@ -90,7 +103,7 @@ public class UserDetailService extends DefaultOAuth2UserService implements UserD
         return userRepository.save(user);
     }
 
-    private User updateExistingUser(User existingUser, OAuth2UserDetail oAuthUserDetail) {
+    private User updateExistingUser(User existingUser, AppUserDetail oAuthUserDetail) {
         if (!StringUtils.hasText(existingUser.getEmail())) {
             existingUser.setEmail(oAuthUserDetail.getEmail());
         }

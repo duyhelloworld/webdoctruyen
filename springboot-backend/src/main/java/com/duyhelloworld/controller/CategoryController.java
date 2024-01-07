@@ -1,12 +1,6 @@
 package com.duyhelloworld.controller;
 
 import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,63 +12,41 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.transaction.Transactional;
-import com.duyhelloworld.entity.Category;
-import com.duyhelloworld.exception.AppException;
 import com.duyhelloworld.model.CategoryModel;
-import com.duyhelloworld.repository.BookRepository;
-import com.duyhelloworld.repository.CategoryRepository;
+import com.duyhelloworld.service.CategoryService;
 
 @RestController
 @RequestMapping("api/category")
 public class CategoryController {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private CategoryService categoryService;
 
-    @Autowired
-    private BookRepository bookRepository;
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @GetMapping("all")
     @Transactional
-    public ResponseEntity<List<CategoryModel>> getAll(
+    public List<CategoryModel> getAll(
         @RequestParam(required = false) Integer page) {
-            if (page == null) {
-                page = 1;
-            }
-        return ResponseEntity.ok(categoryRepository.findAll(
-            PageRequest.of(page-1, 10)).getContent().stream()
-            .map(CategoryModel::convert)
-            .collect(Collectors.toList()));
+        return categoryService.getAll(page);
     }
 
     @GetMapping("/{id}")
     @Transactional
-    public ResponseEntity<CategoryModel> getById(@PathVariable Integer id) {
-        Category category = categoryRepository.findById(id)
-            .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Không thấy thể loại này"));
-        return ResponseEntity.ok(CategoryModel.convert(category));
+    public CategoryModel getById(@PathVariable Integer id) {
+        return categoryService.getById(id);
     }
 
     @PostMapping
     @Transactional
-    public ResponseEntity<CategoryModel> create(@RequestBody CategoryModel categoryModel) {
-        Category category = CategoryModel.convert(categoryModel);
-        if (categoryRepository.existsByName(category.getName())) {
-            throw new AppException(HttpStatus.BAD_REQUEST,
-             "Thể loại này đã tồn tại. Thử thể loại khác");
-        }
-        categoryRepository.save(category);
-        return ResponseEntity.ok(CategoryModel.convert(category));
+    public String create(@RequestBody CategoryModel categoryModel) {
+        return "Đã tạo thành công thể loại. Mã mới là " + categoryService.create(categoryModel).getId();
     }
 
     @DeleteMapping("{id}")
     @Transactional
-    public ResponseEntity<String> delete(@PathVariable Integer id) {
-        Category category = categoryRepository.findById(id)
-            .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, 
-                "Không thấy thể loại này"));
-        bookRepository.deleteAll(category.getBooks());
-        categoryRepository.delete(category);
-        return ResponseEntity.ok("Xoá thành công thể loại " + category.getName());
+    public String delete(@PathVariable Integer id) {
+        return "Đã xóa thành công thể loại " + categoryService.delete(id).getName();
     }
 }

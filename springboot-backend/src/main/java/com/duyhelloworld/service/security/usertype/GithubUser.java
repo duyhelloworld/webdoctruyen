@@ -1,17 +1,14 @@
-package com.duyhelloworld.service.security.oauth2.provider;
+package com.duyhelloworld.service.security.usertype;
 
-import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import com.duyhelloworld.service.security.oauth2.OAuth2UserDetail;
+import com.duyhelloworld.service.AppUserDetail;
+import com.duyhelloworld.service.security.Provider;
 
-import lombok.ToString;
-
-@ToString
-public class GithubUser extends OAuth2UserDetail {
+public class GithubUser extends AppUserDetail {
 
     public GithubUser(OAuth2User oAuth2User) {
-        super(oAuth2User);
+        super(oAuth2User, null);
     }
 
     @Override
@@ -30,8 +27,8 @@ public class GithubUser extends OAuth2UserDetail {
     }
 
     @Override
-    public CommonOAuth2Provider getProvider() {
-        return CommonOAuth2Provider.GITHUB;
+    public Provider getProvider() {
+        return Provider.GITHUB;
     }
 
     @Override

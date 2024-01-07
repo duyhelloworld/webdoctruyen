@@ -1,7 +1,8 @@
-package com.duyhelloworld.service.file;
+package com.duyhelloworld.service.impl.file;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,38 +11,34 @@ import java.util.List;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.duyhelloworld.configuration.AppConstant;
 import com.duyhelloworld.exception.AppException;
+import com.duyhelloworld.service.FileService;
 
 @Service
-public class FileService {
+public class FileServiceImpl implements FileService {
 
-    public final String ROOT_DIR 
-        = System.getProperty("user.dir") + "/src/main/resources/static/";
-    public final String BOOK_DIR  = ROOT_DIR + "mangas";
-    public final String COVERIMAGE_DIR = ROOT_DIR + "coverimages";
-    public final String AVATAR_DIR = ROOT_DIR + "avatars";
-    public final String DEFAULT_COVERIMAGE = "default-coverimage.png";
-    public final String DEFAULT_AVATAR = "default-avatar.png";
-
-    public boolean createNewBook(String folderName) {
-        Path path = Path.of(BOOK_DIR, folderName);
+    @Override
+    public void createNewBook(String folderName) {
+        Path path = Path.of(AppConstant.BOOK_DIR, folderName);
         if (Files.exists(path))
-            return false;
+            throw new AppException(HttpStatus.BAD_REQUEST, "Sách này đã tồn tại");
         try {
             Files.createDirectory(path);
-            return true;
+            return;
         } catch (IOException e) {
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi khi tạo!");
         }
     }
 
-    public void saveCoverImage(MultipartFile file){
+    private void saveImage(MultipartFile file, String parentDirectory, String defaultFileName) {
         try {
-            Path path = Path.of(COVERIMAGE_DIR, file.getOriginalFilename());
+            Path path = Path.of(parentDirectory, file.getOriginalFilename());
             if (Files.exists(path)) {
                 throw new FileAlreadyExistsException(path.toString());
             }
@@ -54,42 +51,61 @@ public class FileService {
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "Lỗi khi lưu file");
         }
-    } 
+    }
 
-    public String saveAvatar(MultipartFile file) {
-        try {
-            if (file == null || file.isEmpty()) {
-                return DEFAULT_AVATAR;            
-            }
-            // Lưu file vào thư mục avatar bằng stream 
-            Path path = Path.of(AVATAR_DIR);
-            if (validFile(file, "png")) {
-                if (Files.exists(path)) {
-                    throw new FileAlreadyExistsException(path.toString());
-                }
-                Files.copy(file.getInputStream(), path);
-            }
-            return file.getOriginalFilename();
-        } catch (Exception e) {
-            if (e instanceof FileAlreadyExistsException) {
-                throw new AppException(HttpStatus.BAD_REQUEST, 
-                    "Ảnh này đã tồn tại. Hãy thử lại với tên file khác");
-            }
-            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, 
-                "Lỗi khi lưu file");
+    private void normalize(String... fileInputName) {
+        for (String fileName : fileInputName) {
+            fileName = fileName.replace(" ", "_");
         }
     }
 
-    public int saveChapter(List<MultipartFile> files, String bookName, String folderName) throws IOException {
-        if (bookName.contains(" ")) {
-            bookName = bookName.replace(" ", "_");
+    private void delete(String parentDirectory, String filename) {
+        File file = new File(Path.of(parentDirectory, filename).toString());
+        if (!file.exists()) 
+            return;
+        boolean isSucceed = file.delete();
+        if (!isSucceed) {
+            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                "Lỗi khi xóa file");
         }
-        if (folderName.contains(" ")) {
-            folderName = folderName.replace(" ", "_");
+    }
+    
+    private Resource getResource(String parentDirectory, String filename) {
+        if (filename.matches("^(http|https)://.*$")) {
+            try {
+                return new UrlResource(filename);
+            } catch (MalformedURLException e) {
+                throw new AppException(HttpStatus.BAD_REQUEST, 
+                    "Đường dẫn ảnh không hợp lệ");
+            }
         }
-        Path dir = Path.of(BOOK_DIR, bookName, folderName);
+        File file = new File(Path.of(parentDirectory, filename).toString());
+        if (!file.exists()) 
+            return null;
+        return new FileSystemResource(file.getPath());
+    }
+
+    @Override
+    public void saveCoverImage(MultipartFile file){
+        saveImage(file, AppConstant.COVERIMAGE_DIR, AppConstant.DEFAULT_COVERIMAGE);
+    } 
+
+    @Override
+    public String saveAvatar(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return AppConstant.DEFAULT_AVATAR;
+        }
+        saveImage(file, AppConstant.AVATAR_DIR, AppConstant.DEFAULT_AVATAR);
+        return file.getOriginalFilename();
+    }
+
+    @Override
+    public void saveChapter(List<MultipartFile> files, String bookName, String chapterName) {
+        normalize(bookName, chapterName);
+        Path dir = Path.of(AppConstant.BOOK_DIR, bookName, chapterName);
         if (!Files.exists(dir)) {
-            Files.createDirectory(dir);
+            throw new AppException(HttpStatus.NOT_FOUND, 
+                "Không tìm thấy chapter này");
         }
         // Lưu lại những file hợp lệ. nếu file ko hợp lệ thì skip
         int i = 0; 
@@ -99,28 +115,26 @@ public class FileService {
                 if (Files.exists(Path.of(dir.toString(), newFileName))) {
                     continue;
                 }
-                Files.copy(file.getInputStream(), 
-                    Path.of(dir.toString(), newFileName), 
-                    StandardCopyOption.REPLACE_EXISTING);
+                try {
+                    Files.copy(file.getInputStream(), 
+                        Path.of(dir.toString(), newFileName), 
+                        StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                    throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                        "Lỗi khi lưu file");
+                }
             }
         }
-        return i;
     } 
 
     // Luôn chắc kèo file tồn tại
     public Resource getCoverImage(String filename){
-        File file = new File(Path.of(COVERIMAGE_DIR, filename).toString());
-        return new FileSystemResource(file.getPath());
+        return getResource(AppConstant.COVERIMAGE_DIR, filename);
     }
 
     public Integer getNumberImageOfChapter(String bookName, String chapterName) {
-        if (bookName.contains(" ")) {
-            bookName = bookName.replace(" ", "_");
-        }
-        if (chapterName.contains(" ")) {
-            chapterName = chapterName.replace(" ", "_");
-        }
-        Path path = Path.of(BOOK_DIR, bookName, chapterName);
+        normalize(bookName, chapterName);
+        Path path = Path.of(AppConstant.BOOK_DIR, bookName, chapterName);
         File file = new File(path.toString());
         if (!file.exists() || !file.isDirectory() || file.listFiles() == null)
             return 0;
@@ -128,48 +142,30 @@ public class FileService {
     }
 
     public Resource getChapter(String bookName, String chapterName, Integer fileId){
-        String fileName = "%02d.jpg".formatted(fileId);
-        String chapterFolder = Path.of(BOOK_DIR, bookName, chapterName, fileName).toString();
-        File file = new File(chapterFolder);
-        if (!file.exists()) 
-            return null;
-        return new FileSystemResource(chapterFolder);
+        return getResource(Path.of(AppConstant.BOOK_DIR, bookName, chapterName).toString(),
+        "%02d.jpg".formatted(fileId));
     }
 
     public Resource getAvatar(String filename) {
-        File file = new File(Path.of(AVATAR_DIR, filename).toString());
-        if (!file.exists()) 
-            return null;
-        return new FileSystemResource(file.getPath());
+        return getResource(AppConstant.AVATAR_DIR, filename);
     }
 
     public void deleteAvatar(String filename) {
-        File file = new File(Path.of(AVATAR_DIR, filename).toString());
-        if (!file.exists()) 
+        if (filename.equals(AppConstant.DEFAULT_AVATAR)) {
             return;
-        boolean isSucceed = file.delete();
-        if (!isSucceed) {
-            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, 
-                "Lỗi khi xóa file");
         }
+        delete(AppConstant.AVATAR_DIR, filename);
     }
 
     public void deleteCoverImage(String filename) {
-        File file = new File(Path.of(COVERIMAGE_DIR, filename).toString());
-        if (!file.exists() || filename.equals("default-coverimage.png")) {
-            System.out.println("Sách này ko có cover image");
+        if (filename.equals(AppConstant.DEFAULT_COVERIMAGE)) {
             return;
         }
-        boolean isSucceed = file.delete();
-        if (!isSucceed) {
-            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, 
-                "Lỗi khi xóa file ảnh bìa");
-        }
-        System.out.println("Xoá thành công ảnh bìa : " + filename);
+        delete(AppConstant.COVERIMAGE_DIR, filename);
     }
 
     public void deleteChapter(String bookName, String chapterName) {
-        File file = new File(Path.of(BOOK_DIR, bookName, chapterName).toString());
+        File file = new File(Path.of(AppConstant.BOOK_DIR, bookName, chapterName).toString());
         if (!file.exists()) {
             System.out.println("Sách này ko có chapter");
             return;
@@ -186,7 +182,7 @@ public class FileService {
     }
 
     public void deleteBook(String bookName) {
-        File folder = new File(Path.of(BOOK_DIR, bookName).toString());
+        File folder = new File(Path.of(AppConstant.BOOK_DIR, bookName).toString());
         if (!folder.exists()) 
             return;
         try {
