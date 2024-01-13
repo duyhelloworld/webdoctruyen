@@ -4,9 +4,8 @@ import java.util.List;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,12 +20,15 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.transaction.Transactional;
+
+import com.duyhelloworld.configuration.AppConstant;
 import com.duyhelloworld.exception.AppException;
 import com.duyhelloworld.model.ChapterModel;
 import com.duyhelloworld.service.ChapterService;
 
 @RestController
 @RequestMapping("api/chapter")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ChapterController {
 
     private ObjectMapper mapper;
@@ -51,7 +53,7 @@ public class ChapterController {
 		@RequestParam Integer chapterId,
 		@RequestParam Integer fileId) {
 		return ResponseEntity.ok()
-			.contentType(MediaType.valueOf("image/jpg"))
+			.contentType(AppConstant.CHAPTER_FILE_TYPE)
 			.body(chapterService.loadChapter(chapterId, fileId));
 	}
 
