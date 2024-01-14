@@ -20,10 +20,7 @@ import com.duyhelloworld.entity.User;
 import com.duyhelloworld.exception.AppException;
 import com.duyhelloworld.repository.UserRepository;
 import com.duyhelloworld.service.AppUserDetail;
-import com.duyhelloworld.service.security.usertype.FacebookUser;
-import com.duyhelloworld.service.security.usertype.GithubUser;
-import com.duyhelloworld.service.security.usertype.GoogleUser;
-import com.duyhelloworld.service.security.usertype.LocalUser;
+import com.duyhelloworld.service.security.providers.LocalUser;
 
 @Service
 public class UserDetailService extends DefaultOAuth2UserService implements UserDetailsService {
@@ -55,20 +52,7 @@ public class UserDetailService extends DefaultOAuth2UserService implements UserD
 
     private OAuth2User processOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
         Provider provider = Provider.valueOf(userRequest.getClientRegistration().getRegistrationId().toUpperCase());
-        AppUserDetail userDetail;
-        switch (provider) {
-            case FACEBOOK:
-                userDetail = new FacebookUser(oAuth2User);
-                break;
-            case GOOGLE:
-                userDetail = new GoogleUser(oAuth2User);
-                break;
-            case GITHUB:
-                userDetail = new GithubUser(oAuth2User);
-                break;
-            default:
-                throw new AppException(HttpStatus.BAD_REQUEST, "Không hỗ trợ đăng nhập bằng " + provider);
-        }
+        AppUserDetail userDetail = OAuthUserDetailFactory.create(provider, oAuth2User);
         Optional<User> inDb = userRepository.findByUsername(userDetail.getUsername());
         // Save Db
         User tempUser;
