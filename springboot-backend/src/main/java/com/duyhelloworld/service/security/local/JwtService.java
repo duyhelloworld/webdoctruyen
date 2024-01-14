@@ -23,7 +23,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import com.duyhelloworld.entity.Role;
 import com.duyhelloworld.exception.AppException;
-import com.duyhelloworld.service.security.usertype.LocalUser;
+import com.duyhelloworld.service.security.providers.LocalUser;
 
 @Service
 public class JwtService {
