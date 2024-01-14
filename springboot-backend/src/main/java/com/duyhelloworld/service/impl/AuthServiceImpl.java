@@ -23,7 +23,7 @@ import com.duyhelloworld.repository.UserRepository;
 import com.duyhelloworld.service.AuthService;
 import com.duyhelloworld.service.FileService;
 import com.duyhelloworld.service.security.local.JwtService;
-import com.duyhelloworld.service.security.usertype.LocalUser;
+import com.duyhelloworld.service.security.providers.LocalUser;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;

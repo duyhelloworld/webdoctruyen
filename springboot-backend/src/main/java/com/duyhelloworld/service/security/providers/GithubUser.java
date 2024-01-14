@@ -1,4 +1,4 @@
-package com.duyhelloworld.service.security.usertype;
+package com.duyhelloworld.service.security.providers;
 
 import org.springframework.security.oauth2.core.user.OAuth2User;
 

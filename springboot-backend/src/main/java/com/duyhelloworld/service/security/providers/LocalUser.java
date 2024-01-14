@@ -1,4 +1,4 @@
-package com.duyhelloworld.service.security.usertype;
+package com.duyhelloworld.service.security.providers;
 
 import com.duyhelloworld.entity.User;
 import com.duyhelloworld.service.AppUserDetail;
