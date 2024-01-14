@@ -3,6 +3,7 @@ package com.duyhelloworld.service.impl.file;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,6 +35,11 @@ public class FileServiceImpl implements FileService {
         } catch (IOException e) {
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi khi tạo!");
         }
+    }
+
+    public Resource getChapter(String bookName, String chapterName, Integer fileId){
+        return getResource(Path.of(AppConstant.BOOK_DIR, bookName, chapterName).toString(),
+        "%02d.jpg".formatted(fileId));
     }
 
     private void saveImage(MultipartFile file, String parentDirectory, String defaultFileName) {
@@ -141,10 +147,7 @@ public class FileServiceImpl implements FileService {
         return file.listFiles().length;
     }
 
-    public Resource getChapter(String bookName, String chapterName, Integer fileId){
-        return getResource(Path.of(AppConstant.BOOK_DIR, bookName, chapterName).toString(),
-        "%02d.jpg".formatted(fileId));
-    }
+
 
     public Resource getAvatar(String filename) {
         return getResource(AppConstant.AVATAR_DIR, filename);
@@ -182,19 +185,32 @@ public class FileServiceImpl implements FileService {
     }
 
     public void deleteBook(String bookName) {
-        File folder = new File(Path.of(AppConstant.BOOK_DIR, bookName).toString());
-        if (!folder.exists()) 
+        Path bookPath = Path.of(AppConstant.BOOK_DIR, bookName);
+        if (!Files.exists(bookPath)) {
             return;
+        }
+
+        File bookFolder = new File(bookPath.toString());
         try {
-            for (File file : folder.listFiles()) {
-                if (file.isDirectory()) {
-                    for (File fileIn : file.listFiles()) {
-                        Files.deleteIfExists(fileIn.toPath());
-                    }
-                }
-                Files.deleteIfExists(file.toPath());
+            if (bookFolder.listFiles() == null) {
+                Files.deleteIfExists(bookPath);
+                return;
             }
-            Files.deleteIfExists(folder.toPath());
+
+            Files.walk(bookPath)
+                .sorted((a, b) -> b.compareTo(a))
+                .forEach(path -> {
+                    try {
+                        Files.deleteIfExists(path);
+                    } catch (IOException e) {
+                        throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                            "Lỗi khi xóa file");
+                    }
+                });
+            
+        } catch (DirectoryNotEmptyException ex) {
+            throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, 
+             "Lỗi khi xóa chapter " + ex.getFile());
         } catch (IOException e) {
             throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "Lỗi khi xóa file");
@@ -205,13 +221,7 @@ public class FileServiceImpl implements FileService {
         if (file == null || file.isEmpty())
             return false;
         String fileName = file.getOriginalFilename();
-        if (fileName != null) {
-            if (fileName != null && 
-            !fileName.isBlank() && 
-            fileName.substring(fileName.lastIndexOf(".") + 1)
-                .equals(extension))
-                return true;
-        }
-        return false;
+        return fileName != null && !fileName.isBlank() && 
+            fileName.substring(fileName.lastIndexOf(".") + 1).equals(extension);
     }
 }
