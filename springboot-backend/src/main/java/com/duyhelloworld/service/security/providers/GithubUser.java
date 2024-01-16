@@ -2,7 +2,7 @@ package com.duyhelloworld.service.security.providers;
 
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import com.duyhelloworld.service.AppUserDetail;
+import com.duyhelloworld.service.security.AppUserDetail;
 import com.duyhelloworld.service.security.Provider;
 
 public class GithubUser extends AppUserDetail {

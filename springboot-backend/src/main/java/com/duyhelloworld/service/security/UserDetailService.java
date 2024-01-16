@@ -19,7 +19,6 @@ import com.duyhelloworld.entity.Role;
 import com.duyhelloworld.entity.User;
 import com.duyhelloworld.exception.AppException;
 import com.duyhelloworld.repository.UserRepository;
-import com.duyhelloworld.service.AppUserDetail;
 import com.duyhelloworld.service.security.providers.LocalUser;
 
 @Service

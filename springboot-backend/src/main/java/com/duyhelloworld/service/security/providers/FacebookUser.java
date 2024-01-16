@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import com.duyhelloworld.service.AppUserDetail;
+import com.duyhelloworld.service.security.AppUserDetail;
 import com.duyhelloworld.service.security.Provider;
 
 public class FacebookUser extends AppUserDetail {

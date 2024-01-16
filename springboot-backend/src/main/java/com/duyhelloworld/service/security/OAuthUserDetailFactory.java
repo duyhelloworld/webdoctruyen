@@ -4,7 +4,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.duyhelloworld.exception.AppException;
-import com.duyhelloworld.service.AppUserDetail;
 import com.duyhelloworld.service.security.providers.FacebookUser;
 import com.duyhelloworld.service.security.providers.GithubUser;
 import com.duyhelloworld.service.security.providers.GoogleUser;

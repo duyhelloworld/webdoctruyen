@@ -1,7 +1,7 @@
 package com.duyhelloworld.service.security.providers;
 
 import com.duyhelloworld.entity.User;
-import com.duyhelloworld.service.AppUserDetail;
+import com.duyhelloworld.service.security.AppUserDetail;
 import com.duyhelloworld.service.security.Provider;
 
 public class LocalUser extends AppUserDetail {

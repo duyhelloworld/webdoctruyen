@@ -1,4 +1,4 @@
-package com.duyhelloworld.service;
+package com.duyhelloworld.service.security;
 
 import java.util.Collection;
 import java.util.List;
@@ -10,7 +10,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.duyhelloworld.entity.User;
-import com.duyhelloworld.service.security.Provider;
 
 import lombok.Getter;
 import lombok.Setter;
