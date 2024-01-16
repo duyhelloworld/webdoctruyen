@@ -3,7 +3,7 @@ package com.duyhelloworld.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.CrossOrigin;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,13 +21,12 @@ import com.duyhelloworld.model.AuthModel;
 import com.duyhelloworld.model.ChangePassModel;
 import com.duyhelloworld.model.SignInModel;
 import com.duyhelloworld.model.SignUpModel;
-import com.duyhelloworld.service.AppUserDetail;
 import com.duyhelloworld.service.AuthService;
+import com.duyhelloworld.service.security.AppUserDetail;
 
 @RestController
 @RequestMapping("api/auth")
 @AllArgsConstructor
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AuthController {
 
     private ObjectMapper mapper;

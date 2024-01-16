@@ -5,19 +5,19 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.CrossOrigin;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.duyhelloworld.configuration.AppConstant;
 import com.duyhelloworld.model.UserModel;
-import com.duyhelloworld.service.AppUserDetail;
 import com.duyhelloworld.service.UserService;
+import com.duyhelloworld.service.security.AppUserDetail;
 
 @RestController
 @RequestMapping("/api/user")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+
 public class UserController {
 
     private UserService userService;
